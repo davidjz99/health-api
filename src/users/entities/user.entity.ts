@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User {
@@ -25,4 +25,16 @@ export class User {
 
   @Column({ type: 'float', nullable: true })
   weight: number;
+
+  @Column({ name: 'created_by', nullable: true })
+  createdBy: number;
+
+  @Column({ name: 'updated_by', nullable: true })
+  updatedBy: number;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date; //pone automaticamente la fecha actual, cada que se crea un registro
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date; //pone automaticamente la fecha actual, cada que se actualiza un registro
 }

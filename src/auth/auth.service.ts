@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
@@ -24,21 +24,32 @@ export class AuthService {
     return result;
   }
 
-  async login(user: LoginUserDto) {
-    const payload = { email: user.email, sub: user.userId };
+  async login(user: LoginUserDto): Promise<{ access_token: string }> {
+    const userBd = await this.validateUser(user);
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign({ email: userBd.email, sub: userBd.userId }),
     };
   }
 
   async register(userData: CreateUserDto) {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(userData.password!, salt);
-    const newUser: CreateUserDto = await this.usersService.create({
-      ...userData,
-      password: hashedPassword,
-    });
-    const { password, ...result } = newUser;
-    return result;
+
+    try{
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(userData.password!, salt);
+      const newUser: CreateUserDto = await this.usersService.create({
+        ...userData,
+        password: hashedPassword,
+      });
+      const { password, ...result } = newUser;
+      return result;
+    }
+    catch (error) {
+      if (error.code === '23505') { // error de Postgres por UNIQUE constraint
+        throw new ConflictException('El email ya está registrado');
+      }
+      throw new Error('No se pudo registrar el usuario: ' + error.message);
+    }
+
   }
 }
