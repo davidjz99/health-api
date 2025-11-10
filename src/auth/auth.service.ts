@@ -24,11 +24,11 @@ export class AuthService {
     return result;
   }
 
-  async login(user: LoginUserDto): Promise<{ access_token: string }> {
+  async login(user: LoginUserDto): Promise<{ accessToken: string }> {
     const userBd = await this.validateUser(user);
 
     return {
-      access_token: this.jwtService.sign({ email: userBd.email, sub: userBd.userId }),
+      accessToken: this.jwtService.sign({ email: userBd.email, sub: userBd.userId }),
     };
   }
 
